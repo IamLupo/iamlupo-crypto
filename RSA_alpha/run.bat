@@ -1,0 +1,9 @@
+g++ -c -O2 -Wextra -pedantic include/BigUnsigned.cpp -o temp/BigUnsigned.o
+g++ -c -O2 -Wextra -pedantic include/BigInteger.cpp -o temp/BigInteger.o
+g++ -c -O2 -Wextra -pedantic include/BigIntegerAlgorithms.cpp -o temp/BigIntegerAlgorithms.o
+g++ -c -O2 -Wextra -pedantic include/BigUnsignedInABase.cpp -o temp/BigUnsignedInABase.o
+g++ -c -O2 -Wextra -pedantic include/BigIntegerUtils.cpp -o temp/BigIntegerUtils.o
+
+g++ main.cpp -o main.exe -lm temp/BigUnsigned.o temp/BigInteger.o temp/BigIntegerAlgorithms.o temp/BigUnsignedInABase.o temp/BigIntegerUtils.o
+
+./main.exe
