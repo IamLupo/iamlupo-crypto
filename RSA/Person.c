@@ -54,6 +54,57 @@ void PersonGenerateKeys(Person* person, unsigned long int length)
 	gmp_randclear(rs);
 }
 
+void PersonGenerateFileHeader(mpz_t input_data, long filesize)
+{
+	mpz_t bn_filesize;
+	
+	char header_hex[39];
+	char filesize_hex[33];
+	
+	unsigned int length;
+	
+	//Init
+	mpz_init(bn_filesize);
+	
+	//Header
+	strncpy(header_hex, "454e43", 6);
+	
+	//Filesize
+	mpz_set_ui(bn_filesize, filesize);
+	length = strlen(mpz_get_str(NULL, 16, bn_filesize));
+	strncpy(filesize_hex, mpz_get_str(NULL, 16, bn_filesize), length);
+	HexFillUp(filesize_hex, &length, 32);
+	
+	strncat(header_hex, filesize_hex, 32);
+	mpz_set_str(input_data, header_hex, 16);
+}
+
+bool PersonReadFileHeader(mpz_t input_data, long* filesize)
+{
+	unsigned int length;
+	char header_hex[39];
+	char header_begin[7];
+	char filesize_hex[34];
+	
+	length = strlen(mpz_get_str(NULL, 16, input_data));
+	
+	if(length == 38)
+	{
+		strncpy(header_hex, mpz_get_str(NULL, 16, input_data), length);		//Get the header data
+		strncpy(header_begin, header_hex, 6);								//Get begin of the header
+		
+		if(strcmp(header_begin, "454e43") == 0)
+		{
+			strncpy(filesize_hex, header_hex + 6, 32);
+			filesize_hex[32] = '\0';
+			
+			HexToLong(filesize_hex, 32, filesize);
+			return true;
+		}
+	}
+	return false;
+}
+
 bool PersonWriteKey(const char* filename, mpz_t data)
 {
 	FILE* stream;

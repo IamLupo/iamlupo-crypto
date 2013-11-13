@@ -1,4 +1,0 @@
-gcc -c CString.c -o CString.o -Wall -O2
-gcc -c CFile.cpp -o CFile.o -Wall -O2
-
-gcc main.c CFile.o CString.o -o main -static -lgmp -lm -Wall -O2

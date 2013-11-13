@@ -15,8 +15,8 @@ void CharToHex(char* _input_char, unsigned int _length, char* _output_hex)
 		char_return[char_id + 0] = hex[((_input_char[value_id] >> 4) & 0xF)];
 		char_return[char_id + 1] = hex[((_input_char[value_id]) & 0x0F)];
 	}
-	char_return[size] = '\0';
-	strlcpy(_output_hex, char_return, size + 1);
+	strncpy(_output_hex, char_return, size);
+	_output_hex[size] = '\0';
 }
 
 void HexToChar(char* _input_hex, unsigned int _length, char* _output_char)
@@ -45,6 +45,41 @@ void HexToChar(char* _input_hex, unsigned int _length, char* _output_char)
 		
 		_output_char[i] = (hex1 * 16) + hex2;
 	}
+	_output_char[_length / 2] = '\0';
+}
+
+void HexToLong(char* _input_hex, unsigned int _length, long* _output_long)
+{
+	long int result = 0;
+	int i;
+	
+	for(i = 0; i < _length / 2; i++)
+	{
+		int hex1, hex2;
+		
+		result = result * 256;
+		
+		hex1 = (int)_input_hex[i * 2];
+		hex2 = (int)_input_hex[(i * 2) + 1];
+		
+		if(hex1 > 90)
+			hex1 -= 87;
+		else if(hex1 > 64)
+			hex1 -= 55;
+		else
+			hex1 -= 48;
+		
+		if(hex2 > 90)
+			hex2 -= 87;
+		else if(hex2 > 64)
+			hex2 -= 55;
+		else
+			hex2 -= 48;
+		
+		result += (hex1 * 16) + hex2;
+	}
+	
+	*_output_long = result;
 }
 
 void HexFillUp(char* _input_hex, unsigned int* _actual_length, unsigned int _result_length)
@@ -65,4 +100,5 @@ void HexFillUp(char* _input_hex, unsigned int* _actual_length, unsigned int _res
 		_input_hex[0] = 0x30;
 		*_actual_length += 1;
 	}
+	_input_hex[_result_length] = '\0';
 }

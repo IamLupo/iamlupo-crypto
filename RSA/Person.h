@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #include "Math.h"
-#include "String.h"
+#include "Convert.h"
 
 typedef struct {
 	mpz_t modulus;
@@ -14,6 +14,10 @@ typedef struct {
 
 void PersonInit(Person* person);
 void PersonGenerateKeys(Person* person, unsigned long int length);
+
+void PersonGenerateFileHeader(mpz_t input_data, long filesize);
+bool PersonReadFileHeader(mpz_t input_data, long* filesize);
+
 bool PersonWriteKey(const char* filename, mpz_t data);
 bool PersonReadKey(const char* filename, mpz_t data);
 int  PersonGetBits(Person* person);

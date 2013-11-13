@@ -1,13 +1,10 @@
-#include <string.h>
-
-#include "String.h"
 #include "CFile.h"
 
 void CFile_Init(CFile* file, const char* _filename, const char* _mode)
 {
 	file->file = NULL;
-	strlcpy(file->filename, _filename, 200);
-	strlcpy(file->mode, _mode, 4);
+	strncpy(file->filename, _filename, 200);
+	strncpy(file->mode, _mode, 4);
 	file->filesize = 0;
 	file->pdata = 0;
 }
