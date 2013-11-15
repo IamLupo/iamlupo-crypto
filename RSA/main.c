@@ -16,6 +16,7 @@ enum MAIN_EVENT
 {
 	event_info,
 	event_situation,
+	event_situation_attack,
 	event_generate,
 	event_encrypt,
 	event_decrypt,
@@ -37,11 +38,12 @@ int main(int argc, char *argv[])
 	//Command Input
 	if(argc > 1)
 	{
-		if(strcmp(argv[1], "-s") == 0)		{	event = event_situation;	}
-		else if(strcmp(argv[1], "-g") == 0)	{	event = event_generate;		}
-		else if(strcmp(argv[1], "-e") == 0)	{	event = event_encrypt;		}
-		else if(strcmp(argv[1], "-d") == 0)	{	event = event_decrypt;		}
-		else if(strcmp(argv[1], "-t") == 0)	{	event = event_test;		}
+		if(strcmp(argv[1], "-s") == 0)		{	event = event_situation;		}
+		else if(strcmp(argv[1], "-sa") == 0){	event = event_situation_attack;	}
+		else if(strcmp(argv[1], "-g") == 0)	{	event = event_generate;			}
+		else if(strcmp(argv[1], "-e") == 0)	{	event = event_encrypt;			}
+		else if(strcmp(argv[1], "-d") == 0)	{	event = event_decrypt;			}
+		else if(strcmp(argv[1], "-t") == 0)	{	event = event_test;				}
 	}
 	
 	if(event == event_info)
@@ -119,7 +121,6 @@ int main(int argc, char *argv[])
 		mpz_set_str(input_data, message_hex, 16);
 		
 		printf("message = %s\n", message);
-		//printf("message hex = %s\n", mpz_get_str(NULL, 16, input_data));
 		printf("\n");
 		
 		PersonEncrypt(&bob, input_data, output_data);
@@ -131,13 +132,106 @@ int main(int argc, char *argv[])
 		
 		//The output_data is our encrypted message and only alice can read this message
 		PersonDecrypt(&alice, output_data, output_data);
-		printf("data decrypted = %s\n", mpz_get_str(NULL, 16, output_data));
 		strcpy(message_hex, mpz_get_str(NULL, 16, output_data));
-		printf("message hex = %s\n", message_hex);
+		HexToChar(message_hex, strlen(message_hex), message);
 		
-		//Convert from Hex to Message
+		printf("data decrypted = %s\n", mpz_get_str(NULL, 16, output_data));
+		printf("message hex = %s\n", message_hex);
+		printf("message = %s\n", message);
+		
+		//Clean
+		PersonClear(&alice);
+		PersonClear(&bob);
+	}
+	else if(event == event_situation_attack)
+	{
+		/*
+			Info: http://en.wikipedia.org/wiki/Blind_signature
+			Example real numbers: http://stackoverflow.com/questions/17281172/rsa-algorithm-example
+		*/
+		
+		char message[25], message_hex[50];
+		mpz_t m, m_signed, blinded_m, blinded_m_signed, output_data, random, temp;
+		
+		Person alice, bob;
+		
+		
+		//Init
+		PersonInit(&alice);
+		PersonInit(&bob);
+		
+		mpz_init(m);
+		mpz_init(m_signed);
+		mpz_init(blinded_m);
+		mpz_init(blinded_m_signed);
+		mpz_init(output_data);
+		mpz_init(random);
+		mpz_init(temp);
+		
+		//Set values
+		mpz_set_str(random, "11", 10);
+		
+		if(	PersonReadKey("compiled/keys/modulus",		alice.modulus) &&
+			PersonReadKey("compiled/keys/public_key",	alice.public_key) &&
+			PersonReadKey("compiled/keys/private_key",	alice.private_key))
+		{
+			printf("Read from File's finished!\n");
+			printf("\n");
+		}
+	
+		//Alice gives the public key and the modulo to bob
+		mpz_init_set(bob.modulus, alice.modulus);
+		mpz_init_set(bob.public_key, alice.public_key);
+		
+		//Bob needs a message to send
+		if(argc > 2)
+			strncpy(message, argv[2], strlen(argv[2]));
+		else
+			strncpy(message, "You are now licenced!!!", 23);
+		
+		//Convert from Message to Hex
+		CharToHex(message, strlen(message), message_hex);
+		mpz_set_str(m, message_hex, 16);
+		printf("Bob's secret message = %s\n", message);
+		printf("\n");
+	
+		//Bob generates a blinded message
+		mpz_powm(blinded_m, random, bob.public_key, bob.modulus);
+		mpz_mul(blinded_m, m, blinded_m);
+		mpz_mod(blinded_m, blinded_m, bob.modulus);
+		printf("m' = ((<message> * r)^<public_key>) mod <modulus>\n");
+		printf("Bob's blinded message = %s\n", mpz_get_str(NULL, 16, blinded_m));
+		printf("\n");
+		
+		printf("With this blinded message Alice can not read what it is about.\n");
+		printf("In this case she has to deside to sign it or not.\n");
+		printf("\n");
+		
+		//Alice signs the blinded message
+		printf("s' = m' ^<private_key> mod <modulus>\n");
+		mpz_powm(blinded_m_signed, blinded_m, alice.private_key, alice.modulus);
+		printf("Alice's blinded message signed = %s\n", mpz_get_str(NULL, 16, blinded_m_signed));
+		printf("\n");
+		
+		printf("Now Alice deside to sign the blinded message we can calc our signed message\n");
+		printf("\n");
+		
+		//Bob generates his message that is signed now
+		printf("r * (r^-1) = 1 mod <modulus>\n");
+		mpz_invert(output_data, random, bob.modulus);
+		mpz_mul(m_signed, blinded_m_signed, output_data);
+		mpz_mod(m_signed, m_signed, bob.modulus);
+		printf("s = (s' * (r^-1)) mod <modulus>\n");
+		printf("Message signed = %s\n", mpz_get_str(NULL, 10, m_signed));
+		printf("\n");
+		
+		//Check if the signed message generates our orginal message
+		printf("m = s ^<public_key> mod <modulus>\n");
+		mpz_powm(output_data, m_signed, bob.public_key, bob.modulus);
+		strcpy(message_hex, mpz_get_str(NULL, 16, output_data));
 		HexToChar(message_hex, strlen(message_hex), message);
 		printf("message = %s\n", message);
+		printf("Alice has signed our massage without knowing it!\n");
 		
 		//Clean
 		PersonClear(&alice);
