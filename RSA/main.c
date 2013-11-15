@@ -155,9 +155,9 @@ int main(int argc, char *argv[])
 		
 		char message[25], message_hex[50];
 		mpz_t m, m_signed, blinded_m, blinded_m_signed, output_data, random, temp;
+		gmp_randstate_t rs;
 		
 		Person alice, bob;
-		
 		
 		//Init
 		PersonInit(&alice);
@@ -171,9 +171,6 @@ int main(int argc, char *argv[])
 		mpz_init(random);
 		mpz_init(temp);
 		
-		//Set values
-		mpz_set_str(random, "11", 10);
-		
 		if(	PersonReadKey("compiled/keys/modulus",		alice.modulus) &&
 			PersonReadKey("compiled/keys/public_key",	alice.public_key) &&
 			PersonReadKey("compiled/keys/private_key",	alice.private_key))
@@ -181,7 +178,13 @@ int main(int argc, char *argv[])
 			printf("Read from File's finished!\n");
 			printf("\n");
 		}
-	
+		
+		srand(time(NULL));
+		gmp_randinit_default(rs); 
+		gmp_randseed_ui(rs, rand());
+		generate_random_prime(random, rs, PersonGetBits(&alice) - 1);
+		//mpz_set_str(random, "11", 10);
+		printf("random = %s\n", mpz_get_str(NULL, 16, random));
 		//Alice gives the public key and the modulo to bob
 		mpz_init_set(bob.modulus, alice.modulus);
 		mpz_init_set(bob.public_key, alice.public_key);
