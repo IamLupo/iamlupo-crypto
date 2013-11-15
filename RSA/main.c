@@ -20,20 +20,21 @@ enum MAIN_EVENT
 	event_generate,
 	event_encrypt,
 	event_decrypt,
-	event_test
+	//event_test
 } event;
 
-void getPath(char* current_path, char* command_path, char *argv[]);
+//void getPath(char* current_path, char* command_path, char *argv[]);
 
 int main(int argc, char *argv[])
 {
 	//Init
 	event = event_info;
 	
+	/*
 	char current_path[1024];
 	char command_path[1024];
-	
 	getPath(current_path, command_path, argv);
+	*/
 	
 	//Command Input
 	if(argc > 1)
@@ -43,14 +44,16 @@ int main(int argc, char *argv[])
 		else if(strcmp(argv[1], "-g") == 0)	{	event = event_generate;			}
 		else if(strcmp(argv[1], "-e") == 0)	{	event = event_encrypt;			}
 		else if(strcmp(argv[1], "-d") == 0)	{	event = event_decrypt;			}
-		else if(strcmp(argv[1], "-t") == 0)	{	event = event_test;				}
+		//else if(strcmp(argv[1], "-t") == 0)	{	event = event_test;				}
 	}
 	
 	if(event == event_info)
 	{
+		printf("Situation:\n %s -s \n", argv[0]);
+		printf("Situation Attack :\n %s -as \n", argv[0]);
 		printf("Generate new keys:\n %s -g\n %s -g <number>\n", argv[0], argv[0]);
-		printf("Encrypt message:\n %s -e \n %s -e <message>\n", argv[0], argv[0]);
-		printf("Encrypt message:\n %s -d <file>\n", argv[0]);
+		printf("Encrypt file:\n %s -e \n", argv[0]);
+		printf("Decrypt file:\n %s -d \n", argv[0]);
 		
 		return 0;
 	}
@@ -388,6 +391,7 @@ int main(int argc, char *argv[])
 		CFile_Close(&input_file);
 		CFile_Close(&output_file);
 	}
+	/*
 	else if(event == event_test)
 	{
 		struct stat s;
@@ -397,10 +401,12 @@ int main(int argc, char *argv[])
 		if (!stat(command_path, &s))
 			printf("'%s' is a directory.\n", command_path);
 	}
+	*/
 	
 	return 0;
 }
 
+/*
 void getPath(char* current_path, char* command_path, char *argv[])
 {
 	getcwd(current_path, sizeof(current_path));
@@ -417,4 +423,4 @@ void getPath(char* current_path, char* command_path, char *argv[])
 	strncat(command_path, "/", 1);
 	strncat(command_path, argv[0], length);
 }
-
+*/
